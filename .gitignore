@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+data/
+.env
+.venv/
+ai_env/
+output/
+*.zip
