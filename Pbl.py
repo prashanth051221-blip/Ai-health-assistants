@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import pickle
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -219,11 +220,54 @@ DISEASE_DATA = [
 ]
 
 
+SYNONYMS = {
+    "uti": "urinary tract infection",
+    "bp": "hypertension",
+    "high bp": "hypertension",
+    "blood pressure": "hypertension",
+    "flu": "influenza",
+    "cold": "common cold",
+    "cough": "common cold",
+    "sugar": "diabetes",
+    "high sugar": "diabetes",
+    "heart attack": "coronary artery disease",
+    "heart disease": "coronary artery disease",
+    "joint pain": "osteoarthritis",
+    "arthritis": "osteoarthritis",
+    "ckd": "kidney disease",
+    "renal": "kidney disease",
+}
+
+
 def find_matches(query, df):
-    diseases = df["Disease"].tolist()
-    results = process.extract(query, diseases, scorer=fuzz.token_sort_ratio, limit=5)
-    matched_names = [name for name, score, _ in results if score > 50]
-    return df[df["Disease"].isin(matched_names)]
+    q = query.strip().lower()
+    if not q:
+        return df.iloc[0:0]
+
+    resolved_q = SYNONYMS.get(q, q)
+    scored = []
+    for idx, row in df.iterrows():
+        disease_name = str(row["Disease"]).lower()
+        desc = str(row["Description"]).lower()
+
+        # 1. Exact or partial substring match in Disease Name
+        if resolved_q in disease_name or q in disease_name:
+            score = 100.0
+        # 2. Substring match in Description
+        elif resolved_q in desc or q in desc:
+            score = 90.0
+        else:
+            # 3. Rapidfuzz WRatio fuzzy matching
+            name_score = max(fuzz.WRatio(resolved_q, disease_name), fuzz.WRatio(q, disease_name))
+            desc_score = max(fuzz.partial_ratio(resolved_q, desc), fuzz.partial_ratio(q, desc)) * 0.85
+            score = max(name_score, desc_score)
+
+        if score >= 45.0:
+            scored.append((score, idx))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    top_indices = [idx for _, idx in scored[:5]]
+    return df.loc[top_indices]
 
 
 model, columns, le = load_model()
@@ -282,28 +326,50 @@ if st.session_state.logged_in:
     )
 
     with tab1:
-        query = st.text_input("Search disease")
-        if query:
-            results = find_matches(query, df)
+        st.subheader("Disease Food Guidance")
+        st.caption("Search by disease name, common synonym (e.g. Cold, Flu, BP, Sugar, UTI), or symptom.")
+
+        col_search, col_pick = st.columns([3, 2])
+        with col_search:
+            search_input = st.text_input(
+                "Search disease",
+                placeholder="e.g. Cold, Diabetes, Asthma, Flu, BP...",
+                key="disease_search_input"
+            )
+        with col_pick:
+            disease_list = ["-- Or choose from list --"] + sorted(df["Disease"].tolist())
+            selected_disease = st.selectbox("Pick a disease", disease_list, key="disease_select_box")
+
+        active_query = search_input.strip()
+        if not active_query and selected_disease != "-- Or choose from list --":
+            active_query = selected_disease
+
+        if active_query:
+            results = find_matches(active_query, df)
             if results.empty:
-                st.warning("No close disease match found.")
+                st.warning(f"No close disease match found for '{active_query}'. Try selecting from the dropdown or using common terms.")
+            else:
+                for _, row in results.iterrows():
+                    st.markdown(f"### {row['Disease']}")
+                    st.caption(f"*{row['Description']}*")
 
-            for _, row in results.iterrows():
-                st.subheader(row["Disease"])
-                st.write(row["Description"])
+                    left, right = st.columns(2)
+                    with left:
+                        st.markdown("##### 🟢 Foods to Eat")
+                        eat_items = [item.strip() for item in re.split(r'[;,]', str(row["Foods_to_Eat"])) if item.strip()]
+                        for item in eat_items:
+                            st.write(f"• {item}")
 
-                left, right = st.columns(2)
-                with left:
-                    st.markdown("**Foods to eat**")
-                    for item in row["Foods_to_Eat"].split(";"):
-                        st.write(f"- {item.strip()}")
+                    with right:
+                        st.markdown("##### 🔴 Foods to Avoid")
+                        avoid_items = [item.strip() for item in re.split(r'[;,]', str(row["Foods_to_Avoid"])) if item.strip()]
+                        for item in avoid_items:
+                            st.write(f"• {item}")
 
-                with right:
-                    st.markdown("**Foods to avoid**")
-                    for item in row["Foods_to_Avoid"].split(";"):
-                        st.write(f"- {item.strip()}")
-
-                st.info(row["Note"])
+                    st.info(f"💡 **Note:** {row['Note']}")
+                    st.markdown("---")
+        else:
+            st.info("💡 Start typing a disease name or choose one from the dropdown to see recommended and prohibited foods.")
 
     with tab2:
         st.subheader("BMI Calculator")
@@ -357,5 +423,24 @@ if st.session_state.logged_in:
         if st.button("Predict Disease"):
             input_data = [1 if input_dict[col] else 0 for col in columns]
             pred = model.predict([input_data])
-            disease_name = le.inverse_transform(pred)
-            st.success(f"Predicted disease: {disease_name[0]}")
+            disease_name = le.inverse_transform(pred)[0]
+            st.success(f"Predicted disease: **{disease_name}**")
+
+            pred_matches = df[df["Disease"].str.lower() == disease_name.lower()]
+            if not pred_matches.empty:
+                pred_row = pred_matches.iloc[0]
+                st.markdown("---")
+                st.subheader(f"Diet Guidance for {disease_name}")
+                st.caption(f"*{pred_row['Description']}*")
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown("##### 🟢 Foods to Eat")
+                    for item in re.split(r'[;,]', str(pred_row["Foods_to_Eat"])):
+                        if item.strip():
+                            st.write(f"• {item.strip()}")
+                with c2:
+                    st.markdown("##### 🔴 Foods to Avoid")
+                    for item in re.split(r'[;,]', str(pred_row["Foods_to_Avoid"])):
+                        if item.strip():
+                            st.write(f"• {item.strip()}")
+                st.info(f"💡 **Note:** {pred_row['Note']}")
