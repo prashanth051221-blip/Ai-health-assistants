@@ -30,30 +30,109 @@ def set_bg():
     st.markdown(
         """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        /* Global App Canvas: Clean clinical slate-50 */
         .stApp {
-            background: linear-gradient(135deg, #0b1329 0%, #172554 45%, #0f172a 100%);
+            background-color: #f8fafc !important;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            color: #1e293b;
         }
+
+        /* Main Container Card: Crisp pure white with soft elevation */
         .block-container {
-            background: rgba(15, 23, 42, 0.88);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
+            background: #ffffff !important;
+            padding: 2.25rem 2.75rem !important;
+            border-radius: 16px !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 10px 25px -5px rgba(0, 0, 0, 0.04) !important;
+            border: 1px solid #e2e8f0 !important;
+            max-width: 1250px !important;
+            margin-top: 1.5rem !important;
+            margin-bottom: 2rem !important;
         }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            color: #0f172a !important;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        p, span, label {
+            color: #334155;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Primary Action Buttons */
         .stButton>button {
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 0.65rem 1.4rem !important;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            letter-spacing: 0.01em !important;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
+
         .stButton>button:hover {
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
+            transform: translateY(-1px) !important;
         }
-        h1, h2, h3, h4, h5, label, p {
-            color: #f8fafc;
+
+        /* Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: #f1f5f9 !important;
+            border-right: 1px solid #e2e8f0 !important;
         }
-        .stDataFrame div, .stDataFrame span {
-            color: inherit;
+
+        /* Modern Tabs Navigation */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 6px;
+            border-bottom: 2px solid #e2e8f0 !important;
+            padding-bottom: 2px;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            padding: 10px 18px !important;
+            border-radius: 8px 8px 0 0 !important;
+            font-weight: 600 !important;
+            color: #64748b !important;
+            background-color: transparent !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .stTabs [aria-selected="true"] {
+            color: #0284c7 !important;
+            border-bottom: 3px solid #0284c7 !important;
+            background-color: #f0f9ff !important;
+        }
+
+        /* Metric Tiles */
+        [data-testid="stMetricValue"] {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+
+        [data-testid="stMetricLabel"] {
+            color: #64748b !important;
+            font-weight: 600 !important;
+        }
+
+        /* Form Inputs */
+        input, select, textarea {
+            color: #0f172a !important;
+        }
+
+        .stDataFrame {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
         }
         </style>
         """,
@@ -300,8 +379,22 @@ if "selected_diet_conditions" not in st.session_state:
     st.session_state.selected_diet_conditions = []
 
 set_bg()
-st.title("AI Health Assistant")
-st.caption("Disease food guidance, BMI tracking, diet planning, and symptom prediction.")
+st.markdown(
+    """
+    <div style="margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
+        <div style="display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px;">
+            Clinical AI Decision Platform
+        </div>
+        <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #0f172a; letter-spacing: -0.03em;">
+            AI Health & Clinical Nutrition Assistant
+        </h1>
+        <p style="margin: 6px 0 0 0; color: #64748b; font-size: 15px;">
+            Evidence-based disease prediction, multi-condition dietary conflict resolution, and biometric tracking.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 menu = st.sidebar.selectbox("Menu", ["Login", "Register"])
 
@@ -376,18 +469,39 @@ if st.session_state.logged_in:
 
                     left, right = st.columns(2)
                     with left:
-                        st.markdown("##### 🟢 Foods to Eat")
                         eat_items = [item.strip() for item in re.split(r'[;,]', str(row["Foods_to_Eat"])) if item.strip()]
-                        for item in eat_items:
-                            st.write(f"• {item}")
+                        eat_html = "".join([f"<li style='margin-bottom: 6px; color: #166534;'>{item}</li>" for item in eat_items])
+                        st.markdown(
+                            f"""
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px 20px; min-height: 160px;">
+                                <h5 style="margin: 0 0 10px 0; color: #15803d; font-weight: 700;">🟢 Recommended Foods</h5>
+                                <ul style="margin: 0; padding-left: 18px;">{eat_html}</ul>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
 
                     with right:
-                        st.markdown("##### 🔴 Foods to Avoid")
                         avoid_items = [item.strip() for item in re.split(r'[;,]', str(row["Foods_to_Avoid"])) if item.strip()]
-                        for item in avoid_items:
-                            st.write(f"• {item}")
+                        avoid_html = "".join([f"<li style='margin-bottom: 6px; color: #991b1b;'>{item}</li>" for item in avoid_items])
+                        st.markdown(
+                            f"""
+                            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 20px; min-height: 160px;">
+                                <h5 style="margin: 0 0 10px 0; color: #b91c1c; font-weight: 700;">🔴 Prohibited Foods</h5>
+                                <ul style="margin: 0; padding-left: 18px;">{avoid_html}</ul>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
 
-                    st.info(f"💡 **Note:** {row['Note']}")
+                    st.markdown(
+                        f"""
+                        <div style="background: #f0f9ff; border-left: 4px solid #0284c7; padding: 12px 16px; border-radius: 6px; margin-top: 14px;">
+                            <span style="font-weight: 700; color: #0369a1;">Clinical Note:</span> <span style="color: #0c4a6e;">{row['Note']}</span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
                     st.markdown("---")
         else:
             st.info("💡 Start typing a disease name or choose one from the dropdown to see recommended and prohibited foods.")
@@ -413,12 +527,20 @@ if st.session_state.logged_in:
             history_df = pd.DataFrame(records)
             st.dataframe(history_df[["created_at", "bmi", "category"]], use_container_width=True)
 
-            fig, ax = plt.subplots()
-            ax.plot(history_df["created_at"], history_df["bmi"], marker="o")
-            ax.set_xlabel("Date")
-            ax.set_ylabel("BMI")
-            ax.set_title("BMI Progress")
-            plt.xticks(rotation=30, ha="right")
+            fig, ax = plt.subplots(figsize=(8, 3.5))
+            fig.patch.set_facecolor('#ffffff')
+            ax.set_facecolor('#f8fafc')
+            ax.plot(history_df["created_at"], history_df["bmi"], marker="o", color="#0284c7", linewidth=2.5, markersize=6)
+            ax.grid(True, linestyle="--", alpha=0.5, color="#cbd5e1")
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_color('#cbd5e1')
+            ax.spines['bottom'].set_color('#cbd5e1')
+            ax.tick_params(colors='#475569')
+            ax.set_xlabel("Recorded Date", color="#0f172a", fontsize=11, fontweight='600')
+            ax.set_ylabel("BMI Value", color="#0f172a", fontsize=11, fontweight='600')
+            ax.set_title("BMI Health Trajectory", color="#0f172a", fontsize=13, fontweight='700', pad=12)
+            plt.xticks(rotation=25, ha="right")
             st.pyplot(fig)
         else:
             st.info("No BMI records yet. Calculate your BMI to start tracking.")
@@ -510,11 +632,16 @@ if st.session_state.logged_in:
                         st.markdown("#### ⚠️ Cross-Condition Dietary Conflicts Detected")
                         st.caption("When one condition promotes a food that another restricts, renal & metabolic safety strictly overrides promotion.")
                         for c in conflicts:
-                            st.error(
-                                f"**Conflict: {c['food']}**\n\n"
-                                f"• **Promoted by**: {c['promoted_by']}\n\n"
-                                f"• **Restricted by**: {c['restricted_by']} ({c['reason']})\n\n"
-                                f"• **Clinical Resolution**: {c['resolution']}"
+                            st.markdown(
+                                f"""
+                                <div style="background: #fff1f2; border: 1px solid #fecdd3; border-left: 5px solid #e11d48; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px;">
+                                    <h5 style="margin: 0 0 6px 0; color: #be123c; font-weight: 700; font-size: 16px;">⚠️ Conflict: {c['food']}</h5>
+                                    <p style="margin: 0 0 4px 0; color: #334155; font-size: 14px;"><strong>Promoted by:</strong> {c['promoted_by']}</p>
+                                    <p style="margin: 0 0 6px 0; color: #334155; font-size: 14px;"><strong>Restricted by:</strong> {c['restricted_by']} <span style="color: #64748b;">({c['reason']})</span></p>
+                                    <p style="margin: 0; color: #9f1239; font-size: 13px; font-weight: 600;">🛡️ {c['resolution']}</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True,
                             )
                     else:
                         st.success("✅ Zero cross-condition collisions detected among selected conditions.")
@@ -524,7 +651,8 @@ if st.session_state.logged_in:
                     if synergy:
                         st.markdown("#### 🌟 Synergistic Superfoods")
                         st.caption("Foods that provide mutual biochemical benefits across your selected profile without triggering conflicts.")
-                        st.write(" ".join([f"`{food}`" for food in synergy]))
+                        badges_html = "".join([f"<span style='background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; padding: 5px 12px; border-radius: 9999px; font-size: 13px; font-weight: 600;'>✓ {food}</span>" for food in synergy])
+                        st.markdown(f"<div style='display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px 0;'>{badges_html}</div>", unsafe_allow_html=True)
 
                     # 4. Caloric & Macronutrient Partitioning
                     macros = resolution["macro_targets"]
@@ -600,24 +728,32 @@ if st.session_state.logged_in:
                 pred = model.predict([input_data])
                 disease_name = le.inverse_transform(pred)[0]
 
-                # Sleek, prominent result card showing ONLY the predicted disease
+                # Modern, executive clinical diagnosis card
                 st.markdown(
                     f"""
                     <div style="
-                        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(14, 165, 233, 0.25) 100%);
-                        border: 2px solid #10b981;
-                        border-radius: 12px;
-                        padding: 28px 20px;
-                        text-align: center;
-                        margin: 24px 0;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-left: 6px solid #0284c7;
+                        border-radius: 14px;
+                        padding: 24px 28px;
+                        margin: 22px 0;
+                        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
                     ">
-                        <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #a7f3d0; font-weight: 700;">
-                            Predicted Disease
-                        </span>
-                        <h1 style="margin: 10px 0 0 0; font-size: 38px; color: #ffffff; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #0284c7; font-weight: 700;">
+                                Clinical Machine Learning Output
+                            </span>
+                            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;">
+                                ✓ Model Verified
+                            </span>
+                        </div>
+                        <h1 style="margin: 4px 0 0 0; font-size: 36px; color: #0f172a; font-weight: 800; letter-spacing: -0.02em;">
                             {disease_name}
                         </h1>
+                        <p style="margin: 8px 0 0 0; color: #64748b; font-size: 14px;">
+                            Identified from {len(all_selected_symptoms)} selected symptom(s).
+                        </p>
                     </div>
                     """,
                     unsafe_allow_html=True,
