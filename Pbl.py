@@ -32,14 +32,25 @@ def set_bg():
         """
         <style>
         .stApp {
-            background: linear-gradient(135deg, #d8f3dc 0%, #74c69d 45%, #277da1 100%);
+            background: linear-gradient(135deg, #0b1329 0%, #172554 45%, #0f172a 100%);
         }
         .block-container {
-            background: rgba(10, 20, 30, 0.78);
-            padding: 1.5rem;
-            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.88);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
         }
-        h1, h2, h3, label, p, div, span {
+        .stButton>button {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .stButton>button:hover {
+            transform: translateY(-1px);
+        }
+        h1, h2, h3, h4, h5, label, p {
             color: #f8fafc;
         }
         .stDataFrame div, .stDataFrame span {
@@ -558,68 +569,68 @@ if st.session_state.logged_in:
                         )
 
     with tab5:
-        st.subheader("Symptom Prediction & Clinical Triage")
-        st.caption("Search or select symptoms to predict top differential diagnoses with confidence scores. Emergency symptoms trigger immediate referral.")
+        st.subheader("🩺 Disease Prediction")
+        st.caption("Select your symptoms below to identify the disease.")
 
-        # Symptom input: Searchable Multi-Select
+        # Clean searchable multi-select
         selected_symptoms = st.multiselect(
-            "Select Symptoms (Search by typing)",
+            "Select Symptoms:",
             options=sorted(columns),
-            placeholder="Type e.g., Fever, Chest Pain, Fatigue, Cough...",
-            help="Select all symptoms the patient is currently experiencing.",
+            placeholder="Type or select symptoms (e.g. Fever, Cough, Headache, Skin Rash...)",
+            help="Choose one or more symptoms from the 50 available clinical features.",
         )
 
-        with st.expander("Or browse all 50 symptoms individually"):
+        with st.expander("📋 Or browse symptoms list"):
             checkbox_symptoms = []
-            c_cols = st.columns(2)
+            c_cols = st.columns(3)
             for i, col in enumerate(columns):
-                with c_cols[i % 2]:
+                with c_cols[i % 3]:
                     if st.checkbox(col, key=f"symptom_chk_{col}"):
                         checkbox_symptoms.append(col)
 
-        # Merge selected symptoms
         all_selected_symptoms = list(set(selected_symptoms + checkbox_symptoms))
 
-        if st.button("Predict Differential Diagnoses", type="primary"):
+        if all_selected_symptoms:
+            st.info(f"Selected **{len(all_selected_symptoms)}** symptom(s): {', '.join(sorted(all_selected_symptoms))}")
+
+        if st.button("🔍 Predict Disease", type="primary", use_container_width=True):
             if not all_selected_symptoms:
                 st.warning("Please select at least one symptom.")
             else:
-                # 1. PILLAR 1: EMERGENCY RED-FLAG CHECK
+                # 1. Red-Flag Emergency Triage Check
                 triage = check_red_flags(all_selected_symptoms)
                 if triage["is_emergency"]:
                     st.error(triage["emergency_action"])
-                    st.markdown("### ⚠️ Flagged Critical Symptoms:")
+                    st.markdown("#### ⚠️ Emergency Symptoms Detected:")
                     for sym, reason in triage["flagged_symptoms"].items():
                         st.markdown(f"- **{sym}**: {reason}")
-                    st.warning("⚠️ **Safety Notice**: Automated machine learning prediction has been suppressed because acute symptoms require emergency clinical evaluation.")
+                    st.warning("Automated prediction is disabled for emergency symptoms. Please seek immediate medical care.")
                 else:
-                    # 2. Probabilistic Top-3 Differential Diagnoses
+                    # 2. Disease Prediction - ONLY the predicted disease!
                     input_data = [1 if col in all_selected_symptoms else 0 for col in columns]
-                    probs = model.predict_proba([input_data])[0]
-                    top_indices = np.argsort(probs)[::-1][:3]
+                    pred = model.predict([input_data])
+                    disease_name = le.inverse_transform(pred)[0]
 
-                    st.markdown("### 🩺 Differential Diagnoses (Top 3)")
-                    st.caption("Probabilistic predictions from the Random Forest classifier based on symptom presentation.")
-
-                    top_disease_names = []
-                    for rank, idx in enumerate(top_indices):
-                        prob = probs[idx] * 100
-                        disease = le.inverse_transform([idx])[0]
-                        top_disease_names.append(disease)
-
-                        medal = ["🥇", "🥈", "🥉"][rank]
-                        col_pred, col_bar = st.columns([2, 3])
-                        with col_pred:
-                            st.markdown(f"**{medal} {disease}**")
-                        with col_bar:
-                            st.progress(min(1.0, prob / 100))
-                            st.caption(f"Confidence: **{prob:.1f}%**")
-
-                    # One-Click Transfer to Tab 4 (Diet Optimizer)
-                    st.markdown("---")
-                    st.markdown("##### 🧬 Next Step: Multi-Condition Dietary Planning")
-                    st.caption("Send predicted conditions directly to the Diet Conflict Resolver to generate a safe meal plan.")
-                    if st.button(f"👉 Transfer '{top_disease_names[0]}' to Diet Optimizer"):
-                        st.session_state.selected_diet_conditions = [top_disease_names[0]]
-                        st.success(f"Transferred '{top_disease_names[0]}' to Tab 4! Switch to Tab 4 to run conflict optimization.")
+                    # Sleek, prominent result card showing ONLY the disease
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(14, 165, 233, 0.25) 100%);
+                            border: 2px solid #10b981;
+                            border-radius: 12px;
+                            padding: 28px 20px;
+                            text-align: center;
+                            margin: 24px 0;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                        ">
+                            <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #a7f3d0; font-weight: 700;">
+                                Predicted Disease
+                            </span>
+                            <h1 style="margin: 10px 0 0 0; font-size: 38px; color: #ffffff; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                                {disease_name}
+                            </h1>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
