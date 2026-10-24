@@ -32,20 +32,25 @@ def set_bg():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        /* Global App Canvas: Clean clinical slate-50 */
+        /* =========================================================
+           HEALTHIFY COACH DESIGN SYSTEM
+           Clean mint, emerald, crisp white & soft energetic accents
+           ========================================================= */
+
+        /* Global Canvas: Clean, airy health-coach slate-50 */
         .stApp {
             background-color: #f8fafc !important;
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             color: #1e293b;
         }
 
-        /* Main Container Card: Crisp pure white with soft elevation */
+        /* Main Container Card: Crisp pure white with modern rounded corners */
         .block-container {
             background: #ffffff !important;
             padding: 2.25rem 2.75rem !important;
-            border-radius: 16px !important;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 10px 25px -5px rgba(0, 0, 0, 0.04) !important;
-            border: 1px solid #e2e8f0 !important;
+            border-radius: 20px !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
+            border: 1px solid #edf2f7 !important;
             max-width: 1250px !important;
             margin-top: 1.5rem !important;
             margin-bottom: 2rem !important;
@@ -65,74 +70,185 @@ def set_bg():
             line-height: 1.6;
         }
 
-        /* Primary Action Buttons */
-        .stButton>button {
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-            color: #ffffff !important;
-            border: none !important;
-            border-radius: 10px !important;
-            padding: 0.65rem 1.4rem !important;
+        label p {
+            color: #1e293b !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            margin-bottom: 4px !important;
+        }
+
+        /* =========================================================
+           HEALTHIFY INPUTS & SELECTBOXES (FIXING THE DARK BOXES)
+           ========================================================= */
+
+        /* 1. Base Select & MultiSelect Input Containers */
+        div[data-baseweb="select"], 
+        div[data-baseweb="select"] > div,
+        div[data-testid="stSelectbox"] > div > div,
+        div[data-testid="stMultiSelect"] > div > div {
+            background-color: #ffffff !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            color: #0f172a !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        /* Selected value text inside Selectboxes */
+        div[data-baseweb="select"] * {
+            color: #0f172a !important;
+        }
+
+        div[data-baseweb="select"]:hover,
+        div[data-baseweb="select"] > div:hover {
+            border-color: #10b981 !important;
+        }
+
+        /* 2. MultiSelect Tags -> Healthify Mint Green Pills */
+        span[data-baseweb="tag"],
+        div[data-baseweb="tag"] {
+            background-color: #ecfdf5 !important;
+            border: 1px solid #6ee7b7 !important;
+            border-radius: 9999px !important;
+            padding: 4px 12px !important;
+            margin: 2px !important;
+        }
+
+        span[data-baseweb="tag"] span,
+        div[data-baseweb="tag"] span {
+            color: #047857 !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+        }
+
+        span[data-baseweb="tag"] svg,
+        div[data-baseweb="tag"] svg {
+            fill: #059669 !important;
+            color: #059669 !important;
+        }
+
+        /* 3. Number Input Containers */
+        div[data-testid="stNumberInputContainer"] {
+            background-color: #ffffff !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            overflow: hidden !important;
+        }
+
+        div[data-testid="stNumberInputContainer"]:hover {
+            border-color: #10b981 !important;
+        }
+
+        div[data-testid="stNumberInputContainer"] input {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
             font-weight: 600 !important;
             font-size: 15px !important;
-            letter-spacing: 0.01em !important;
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        .stButton>button:hover {
-            background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
-            transform: translateY(-1px) !important;
+        div[data-testid="stNumberInputContainer"] button {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            border-color: #e2e8f0 !important;
         }
 
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background-color: #f1f5f9 !important;
-            border-right: 1px solid #e2e8f0 !important;
+        div[data-testid="stNumberInputContainer"] button:hover {
+            background-color: #ecfdf5 !important;
+            color: #059669 !important;
         }
 
-        /* Modern Tabs Navigation */
+        div[data-testid="stNumberInputContainer"] button svg {
+            fill: #0f172a !important;
+            stroke: #0f172a !important;
+        }
+
+        /* 4. Text Input Fields */
+        div[data-testid="stTextInput"] input,
+        div[data-testid="stTextInputRootElement"] input {
+            background-color: #ffffff !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            color: #0f172a !important;
+            font-size: 14px !important;
+            padding: 10px 14px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        div[data-testid="stTextInput"] input:focus,
+        div[data-testid="stTextInputRootElement"] input:focus {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+        }
+
+        /* 5. Healthify Signature Green Pill Action Buttons */
+        .stButton > button,
+        button[kind="primary"] {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 9999px !important;
+            padding: 0.75rem 2rem !important;
+            font-weight: 700 !important;
+            font-size: 15px !important;
+            letter-spacing: 0.02em !important;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .stButton > button:hover,
+        button[kind="primary"]:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        /* 6. Healthify Signature Pill Tabs */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 6px;
-            border-bottom: 2px solid #e2e8f0 !important;
-            padding-bottom: 2px;
+            gap: 10px !important;
+            border-bottom: 2px solid #f1f5f9 !important;
+            padding-bottom: 8px !important;
         }
 
         .stTabs [data-baseweb="tab"] {
-            padding: 10px 18px !important;
-            border-radius: 8px 8px 0 0 !important;
+            padding: 9px 22px !important;
+            border-radius: 9999px !important;
             font-weight: 600 !important;
+            font-size: 14px !important;
             color: #64748b !important;
-            background-color: transparent !important;
+            background-color: #f1f5f9 !important;
+            border: 1px solid transparent !important;
             transition: all 0.2s ease !important;
         }
 
         .stTabs [aria-selected="true"] {
-            color: #0284c7 !important;
-            border-bottom: 3px solid #0284c7 !important;
-            background-color: #f0f9ff !important;
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25) !important;
+            border: none !important;
         }
 
-        /* Metric Tiles */
-        [data-testid="stMetricValue"] {
-            color: #0f172a !important;
-            font-weight: 800 !important;
+        /* 7. Dropdown Menu Popover */
+        ul[data-baseweb="menu"] {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
         }
 
-        [data-testid="stMetricLabel"] {
-            color: #64748b !important;
-            font-weight: 600 !important;
+        li[data-baseweb="menu-item"] {
+            color: #1e293b !important;
+            font-weight: 500 !important;
         }
 
-        /* Form Inputs */
-        input, select, textarea {
-            color: #0f172a !important;
+        li[data-baseweb="menu-item"]:hover {
+            background-color: #ecfdf5 !important;
+            color: #047857 !important;
         }
 
-        .stDataFrame {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
+        /* 8. Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: #f8fafc !important;
+            border-right: 1px solid #edf2f7 !important;
         }
         </style>
         """,
@@ -381,15 +497,15 @@ if "selected_diet_conditions" not in st.session_state:
 set_bg()
 st.markdown(
     """
-    <div style="margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
-        <div style="display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px;">
-            Clinical AI Decision Platform
+    <div style="margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; color: #047857; padding: 4px 14px; border-radius: 9999px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px;">
+            <span>⚡</span> HEALTHIFY AI HEALTH COACH
         </div>
         <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #0f172a; letter-spacing: -0.03em;">
-            AI Health & Clinical Nutrition Assistant
+            AI Health & Clinical Nutrition Coach
         </h1>
         <p style="margin: 6px 0 0 0; color: #64748b; font-size: 15px;">
-            Evidence-based disease prediction, multi-condition dietary conflict resolution, and biometric tracking.
+            Smart disease diagnosis, multi-condition dietary conflict resolution, and biometric tracking.
         </p>
     </div>
     """,
@@ -660,10 +776,50 @@ if st.session_state.logged_in:
                     st.caption(f"Calculated via Mifflin-St Jeor equation (BMR: {macros['bmr']} kcal | TDEE: {macros['tdee']} kcal).")
 
                     m1, m2, m3, m4 = st.columns(4)
-                    m1.metric("Daily Calories", f"{macros['calories']} kcal")
-                    m2.metric("Protein", f"{macros['protein_g']} g", help=macros.get("protein_note", ""))
-                    m3.metric("Carbohydrates", f"{macros['carbs_g']} g")
-                    m4.metric("Healthy Fats", f"{macros['fats_g']} g")
+                    with m1:
+                        st.markdown(
+                            f"""
+                            <div style="background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 14px; padding: 18px 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                                <span style="font-size: 22px;">🔥</span>
+                                <div style="font-size: 11px; font-weight: 700; color: #c2410c; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Daily Calories</div>
+                                <div style="font-size: 26px; font-weight: 800; color: #9a3412; margin-top: 2px;">{macros['calories']} <span style="font-size: 13px; font-weight: 600;">kcal</span></div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                    with m2:
+                        st.markdown(
+                            f"""
+                            <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 18px 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                                <span style="font-size: 22px;">🥩</span>
+                                <div style="font-size: 11px; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Target Protein</div>
+                                <div style="font-size: 26px; font-weight: 800; color: #1e40af; margin-top: 2px;">{macros['protein_g']} <span style="font-size: 13px; font-weight: 600;">g</span></div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                    with m3:
+                        st.markdown(
+                            f"""
+                            <div style="background: #fefce8; border: 1.5px solid #fef08a; border-radius: 14px; padding: 18px 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                                <span style="font-size: 22px;">🌾</span>
+                                <div style="font-size: 11px; font-weight: 700; color: #a16207; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Carbohydrates</div>
+                                <div style="font-size: 26px; font-weight: 800; color: #854d0e; margin-top: 2px;">{macros['carbs_g']} <span style="font-size: 13px; font-weight: 600;">g</span></div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                    with m4:
+                        st.markdown(
+                            f"""
+                            <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 14px; padding: 18px 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                                <span style="font-size: 22px;">🥑</span>
+                                <div style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Healthy Fats</div>
+                                <div style="font-size: 26px; font-weight: 800; color: #166534; margin-top: 2px;">{macros['fats_g']} <span style="font-size: 13px; font-weight: 600;">g</span></div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
 
                     if "protein_note" in macros and macros["protein_note"]:
                         st.info(f"💡 **Protein Allocation:** {macros['protein_note']}")
@@ -733,26 +889,25 @@ if st.session_state.logged_in:
                     f"""
                     <div style="
                         background: #ffffff;
-                        border: 1px solid #e2e8f0;
-                        border-left: 6px solid #0284c7;
-                        border-radius: 14px;
-                        padding: 24px 28px;
+                        border: 2px solid #10b981;
+                        border-radius: 16px;
+                        padding: 26px 30px;
                         margin: 22px 0;
-                        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+                        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);
                     ">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #0284c7; font-weight: 700;">
-                                Clinical Machine Learning Output
+                            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #059669; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                <span>🩺</span> Healthify AI Diagnosis
                             </span>
-                            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;">
-                                ✓ Model Verified
+                            <span style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700;">
+                                ✓ Prediction Complete
                             </span>
                         </div>
-                        <h1 style="margin: 4px 0 0 0; font-size: 36px; color: #0f172a; font-weight: 800; letter-spacing: -0.02em;">
+                        <h1 style="margin: 6px 0 0 0; font-size: 38px; color: #0f172a; font-weight: 800; letter-spacing: -0.02em;">
                             {disease_name}
                         </h1>
                         <p style="margin: 8px 0 0 0; color: #64748b; font-size: 14px;">
-                            Identified from {len(all_selected_symptoms)} selected symptom(s).
+                            Identified from {len(all_selected_symptoms)} recorded symptom(s).
                         </p>
                     </div>
                     """,
