@@ -14,7 +14,6 @@ from pymongo import MongoClient
 from rapidfuzz import fuzz, process
 
 from diet_engine import (
-    check_red_flags,
     resolve_diet_conflicts,
     DISEASE_CONSTRAINTS,
     MEDICATION_INTERACTIONS,
@@ -597,40 +596,30 @@ if st.session_state.logged_in:
             if not all_selected_symptoms:
                 st.warning("Please select at least one symptom.")
             else:
-                # 1. Red-Flag Emergency Triage Check
-                triage = check_red_flags(all_selected_symptoms)
-                if triage["is_emergency"]:
-                    st.error(triage["emergency_action"])
-                    st.markdown("#### ⚠️ Emergency Symptoms Detected:")
-                    for sym, reason in triage["flagged_symptoms"].items():
-                        st.markdown(f"- **{sym}**: {reason}")
-                    st.warning("Automated prediction is disabled for emergency symptoms. Please seek immediate medical care.")
-                else:
-                    # 2. Disease Prediction - ONLY the predicted disease!
-                    input_data = [1 if col in all_selected_symptoms else 0 for col in columns]
-                    pred = model.predict([input_data])
-                    disease_name = le.inverse_transform(pred)[0]
+                input_data = [1 if col in all_selected_symptoms else 0 for col in columns]
+                pred = model.predict([input_data])
+                disease_name = le.inverse_transform(pred)[0]
 
-                    # Sleek, prominent result card showing ONLY the disease
-                    st.markdown(
-                        f"""
-                        <div style="
-                            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(14, 165, 233, 0.25) 100%);
-                            border: 2px solid #10b981;
-                            border-radius: 12px;
-                            padding: 28px 20px;
-                            text-align: center;
-                            margin: 24px 0;
-                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                        ">
-                            <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #a7f3d0; font-weight: 700;">
-                                Predicted Disease
-                            </span>
-                            <h1 style="margin: 10px 0 0 0; font-size: 38px; color: #ffffff; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
-                                {disease_name}
-                            </h1>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                # Sleek, prominent result card showing ONLY the predicted disease
+                st.markdown(
+                    f"""
+                    <div style="
+                        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(14, 165, 233, 0.25) 100%);
+                        border: 2px solid #10b981;
+                        border-radius: 12px;
+                        padding: 28px 20px;
+                        text-align: center;
+                        margin: 24px 0;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                    ">
+                        <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #a7f3d0; font-weight: 700;">
+                            Predicted Disease
+                        </span>
+                        <h1 style="margin: 10px 0 0 0; font-size: 38px; color: #ffffff; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                            {disease_name}
+                        </h1>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
