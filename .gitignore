@@ -7,3 +7,5 @@ data/
 ai_env/
 output/
 *.zip
+.DS_Store
+.pytest_cache/

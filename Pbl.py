@@ -7,10 +7,19 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import streamlit as st
 from pymongo import MongoClient
 from rapidfuzz import fuzz, process
+
+from diet_engine import (
+    check_red_flags,
+    resolve_diet_conflicts,
+    DISEASE_CONSTRAINTS,
+    MEDICATION_INTERACTIONS,
+    ALLERGEN_MAP,
+)
 
 
 st.set_page_config(page_title="AI Health Assistant", layout="wide")
@@ -277,6 +286,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
+if "selected_diet_conditions" not in st.session_state:
+    st.session_state.selected_diet_conditions = []
 
 set_bg()
 st.title("AI Health Assistant")
@@ -403,44 +414,212 @@ if st.session_state.logged_in:
             st.info("No BMI records yet. Calculate your BMI to start tracking.")
 
     with tab4:
-        st.subheader("Diet Planner")
-        goal = st.selectbox("Goal", ["Weight Loss", "Muscle Gain", "Healthy"])
-        if st.button("Generate Diet Plan"):
-            plan = build_diet_plan(goal)
-            for meal, details in plan.items():
-                st.markdown(f"**{meal}**")
-                st.write(details)
+        st.subheader("🧬 Multi-Condition Diet Conflict Resolver")
+        st.caption("Constraint optimization engine that resolves cross-disease dietary conflicts, food-drug interactions, and allergen restrictions.")
+
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            available_conditions = list(DISEASE_CONSTRAINTS.keys())
+            preselected_conds = [c for c in st.session_state.get("selected_diet_conditions", []) if c in available_conditions]
+            active_conditions = st.multiselect(
+                "Active Health Conditions (Select one or more)",
+                options=available_conditions,
+                default=preselected_conds,
+                help="Add multiple overlapping conditions to detect nutritional conflicts.",
+            )
+            active_meds = st.multiselect(
+                "Active Medications (Optional)",
+                options=list(MEDICATION_INTERACTIONS.keys()),
+                help="Cross-references pharmacotherapy and biochemical food interactions.",
+            )
+
+        with col_d2:
+            active_allergies = st.multiselect(
+                "Patient Allergies (Strict Exclusion)",
+                options=list(ALLERGEN_MAP.keys()),
+                help="Foods containing these allergens are strictly purged from meal plans.",
+            )
+            custom_dislikes = st.text_input(
+                "Food Dislikes (Comma-separated)",
+                placeholder="e.g. Mushrooms, Bitter gourd",
+                help="Excluded from your recommended meal plans based on personal taste.",
+            )
+
+        st.markdown("##### 👤 Biometric Profile & Demographics")
+        b1, b2, b3, b4, b5 = st.columns(5)
+        with b1:
+            patient_age = st.number_input("Age", min_value=1, max_value=120, value=30, step=1)
+        with b2:
+            patient_gender = st.selectbox("Biological Sex", ["Male", "Female"])
+        with b3:
+            patient_weight = st.number_input("Weight (kg)", min_value=20.0, max_value=250.0, value=70.0, step=0.5)
+        with b4:
+            patient_height = st.number_input("Height (m)", min_value=0.5, max_value=2.5, value=1.70, step=0.01)
+        with b5:
+            activity = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderate", "Very Active"], index=2)
+
+        c_goal, c_preg = st.columns([3, 2])
+        with c_goal:
+            diet_goal = st.selectbox("Dietary Goal", ["Healthy", "Weight Loss", "Muscle Gain"])
+        with c_preg:
+            is_pregnant = False
+            if patient_gender == "Female":
+                is_pregnant = st.checkbox("Pregnant or Lactating", help="Triggers clinical obstetric guardrail warnings.")
+
+        if st.button("🚀 Run Clinical Diet Optimization", type="primary"):
+            if not active_conditions:
+                st.warning("Please select at least one health condition (e.g. 'Diabetes', 'Hypertension', 'Kidney Disease').")
+            else:
+                resolution = resolve_diet_conflicts(
+                    conditions=active_conditions,
+                    medications=active_meds,
+                    allergies=active_allergies,
+                    custom_dislikes=custom_dislikes,
+                    weight_kg=patient_weight,
+                    height_m=patient_height,
+                    age=patient_age,
+                    gender=patient_gender,
+                    activity_level=activity,
+                    goal=diet_goal,
+                    is_pregnant=is_pregnant,
+                )
+
+                # 1. Demographic Guardrail Notices
+                demo = resolution["demographics_status"]
+                if demo["warnings"]:
+                    for w in demo["warnings"]:
+                        if not demo["allowed"]:
+                            st.error(w)
+                        else:
+                            st.warning(w)
+
+                if demo["allowed"]:
+                    # 2. Cross-Condition Conflicts Banner
+                    conflicts = resolution["conflicts"]
+                    if conflicts:
+                        st.markdown("#### ⚠️ Cross-Condition Dietary Conflicts Detected")
+                        st.caption("When one condition promotes a food that another restricts, renal & metabolic safety strictly overrides promotion.")
+                        for c in conflicts:
+                            st.error(
+                                f"**Conflict: {c['food']}**\n\n"
+                                f"• **Promoted by**: {c['promoted_by']}\n\n"
+                                f"• **Restricted by**: {c['restricted_by']} ({c['reason']})\n\n"
+                                f"• **Clinical Resolution**: {c['resolution']}"
+                            )
+                    else:
+                        st.success("✅ Zero cross-condition collisions detected among selected conditions.")
+
+                    # 3. Synergistic Superfoods
+                    synergy = resolution["synergistic_foods"]
+                    if synergy:
+                        st.markdown("#### 🌟 Synergistic Superfoods")
+                        st.caption("Foods that provide mutual biochemical benefits across your selected profile without triggering conflicts.")
+                        st.write(" ".join([f"`{food}`" for food in synergy]))
+
+                    # 4. Caloric & Macronutrient Partitioning
+                    macros = resolution["macro_targets"]
+                    st.markdown("#### 📊 Mathematical Caloric & Macronutrient Targets")
+                    st.caption(f"Calculated via Mifflin-St Jeor equation (BMR: {macros['bmr']} kcal | TDEE: {macros['tdee']} kcal).")
+
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("Daily Calories", f"{macros['calories']} kcal")
+                    m2.metric("Protein", f"{macros['protein_g']} g", help=macros.get("protein_note", ""))
+                    m3.metric("Carbohydrates", f"{macros['carbs_g']} g")
+                    m4.metric("Healthy Fats", f"{macros['fats_g']} g")
+
+                    if "protein_note" in macros and macros["protein_note"]:
+                        st.info(f"💡 **Protein Allocation:** {macros['protein_note']}")
+
+                    # 5. Conflict-Free 4-Meal Plan
+                    st.markdown("#### 🍽️ Conflict-Free Daily Meal Plan")
+                    st.caption("Constructed strictly from the verified safe food pool; 100% compliant with all active constraints, allergies, and drug interactions.")
+                    plan = resolution["meal_plan"]
+                    for meal_name, details in plan.items():
+                        with st.expander(f"**{meal_name}**", expanded=True):
+                            st.write(details)
+
+                    # 6. Granular Explainability & Restriction Traceability
+                    restrictions = resolution["restrictions"]
+                    if restrictions:
+                        st.markdown("#### 🔍 Granular Explainability & Restriction Traceability")
+                        st.caption("Exact clinical reason why each food item was restricted or excluded from your plan.")
+                        restr_df = pd.DataFrame(restrictions)
+                        st.dataframe(
+                            restr_df[["food", "source", "category", "biochemical_reason"]].rename(
+                                columns={
+                                    "food": "Restricted Food",
+                                    "source": "Triggering Factor",
+                                    "category": "Classification",
+                                    "biochemical_reason": "Biochemical Hazard / Rationale",
+                                }
+                            ),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
 
     with tab5:
-        st.subheader("Symptom Prediction")
-        input_dict = {}
-        cols_ui = st.columns(2)
+        st.subheader("Symptom Prediction & Clinical Triage")
+        st.caption("Search or select symptoms to predict top differential diagnoses with confidence scores. Emergency symptoms trigger immediate referral.")
 
-        for i, col in enumerate(columns):
-            with cols_ui[i % 2]:
-                input_dict[col] = st.checkbox(col)
+        # Symptom input: Searchable Multi-Select
+        selected_symptoms = st.multiselect(
+            "Select Symptoms (Search by typing)",
+            options=sorted(columns),
+            placeholder="Type e.g., Fever, Chest Pain, Fatigue, Cough...",
+            help="Select all symptoms the patient is currently experiencing.",
+        )
 
-        if st.button("Predict Disease"):
-            input_data = [1 if input_dict[col] else 0 for col in columns]
-            pred = model.predict([input_data])
-            disease_name = le.inverse_transform(pred)[0]
-            st.success(f"Predicted disease: **{disease_name}**")
+        with st.expander("Or browse all 50 symptoms individually"):
+            checkbox_symptoms = []
+            c_cols = st.columns(2)
+            for i, col in enumerate(columns):
+                with c_cols[i % 2]:
+                    if st.checkbox(col, key=f"symptom_chk_{col}"):
+                        checkbox_symptoms.append(col)
 
-            pred_matches = df[df["Disease"].str.lower() == disease_name.lower()]
-            if not pred_matches.empty:
-                pred_row = pred_matches.iloc[0]
-                st.markdown("---")
-                st.subheader(f"Diet Guidance for {disease_name}")
-                st.caption(f"*{pred_row['Description']}*")
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.markdown("##### 🟢 Foods to Eat")
-                    for item in re.split(r'[;,]', str(pred_row["Foods_to_Eat"])):
-                        if item.strip():
-                            st.write(f"• {item.strip()}")
-                with c2:
-                    st.markdown("##### 🔴 Foods to Avoid")
-                    for item in re.split(r'[;,]', str(pred_row["Foods_to_Avoid"])):
-                        if item.strip():
-                            st.write(f"• {item.strip()}")
-                st.info(f"💡 **Note:** {pred_row['Note']}")
+        # Merge selected symptoms
+        all_selected_symptoms = list(set(selected_symptoms + checkbox_symptoms))
+
+        if st.button("Predict Differential Diagnoses", type="primary"):
+            if not all_selected_symptoms:
+                st.warning("Please select at least one symptom.")
+            else:
+                # 1. PILLAR 1: EMERGENCY RED-FLAG CHECK
+                triage = check_red_flags(all_selected_symptoms)
+                if triage["is_emergency"]:
+                    st.error(triage["emergency_action"])
+                    st.markdown("### ⚠️ Flagged Critical Symptoms:")
+                    for sym, reason in triage["flagged_symptoms"].items():
+                        st.markdown(f"- **{sym}**: {reason}")
+                    st.warning("⚠️ **Safety Notice**: Automated machine learning prediction has been suppressed because acute symptoms require emergency clinical evaluation.")
+                else:
+                    # 2. Probabilistic Top-3 Differential Diagnoses
+                    input_data = [1 if col in all_selected_symptoms else 0 for col in columns]
+                    probs = model.predict_proba([input_data])[0]
+                    top_indices = np.argsort(probs)[::-1][:3]
+
+                    st.markdown("### 🩺 Differential Diagnoses (Top 3)")
+                    st.caption("Probabilistic predictions from the Random Forest classifier based on symptom presentation.")
+
+                    top_disease_names = []
+                    for rank, idx in enumerate(top_indices):
+                        prob = probs[idx] * 100
+                        disease = le.inverse_transform([idx])[0]
+                        top_disease_names.append(disease)
+
+                        medal = ["🥇", "🥈", "🥉"][rank]
+                        col_pred, col_bar = st.columns([2, 3])
+                        with col_pred:
+                            st.markdown(f"**{medal} {disease}**")
+                        with col_bar:
+                            st.progress(min(1.0, prob / 100))
+                            st.caption(f"Confidence: **{prob:.1f}%**")
+
+                    # One-Click Transfer to Tab 4 (Diet Optimizer)
+                    st.markdown("---")
+                    st.markdown("##### 🧬 Next Step: Multi-Condition Dietary Planning")
+                    st.caption("Send predicted conditions directly to the Diet Conflict Resolver to generate a safe meal plan.")
+                    if st.button(f"👉 Transfer '{top_disease_names[0]}' to Diet Optimizer"):
+                        st.session_state.selected_diet_conditions = [top_disease_names[0]]
+                        st.success(f"Transferred '{top_disease_names[0]}' to Tab 4! Switch to Tab 4 to run conflict optimization.")
+
